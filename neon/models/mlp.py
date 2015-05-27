@@ -68,7 +68,7 @@ class MLP(Model):
             self.global_deltas.name = "delta_pool"
 
         [ll.set_deltas_buf(self.global_deltas,
-            offset=((idx % 2) * self.nin_max)) for idx,ll in enumerate(self.layers[1:-1]]
+            offset=((idx % 2) * self.nin_max)) for idx,ll in enumerate(self.layers[1:-1])]
 
         self.initialized = True
 
