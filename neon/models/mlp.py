@@ -78,11 +78,11 @@ class MLP(Model):
                                       dtype=self.layers[1].deltas_dtype)
 
     def fprop(self):
-        [ll.fprop(pl.output) if pl is not None else ll.fprop(None) 
+        [ll.fprop(pl.output) if pl is not None else ll.fprop(None) \
             for ll, pl in zip(self.layers, [None] + self.layers[-1])]
 
     def bprop(self):
-        [ll.bprop(nl.deltas) if nl is not None else ll.bprop(None) 
+        [ll.bprop(nl.deltas) if nl is not None else ll.bprop(None) \
             for ll,nl in zip(reversed(self.layers), reversed(self.layers[1:] + [None]))]
 
     def print_layers(self, debug=False):
