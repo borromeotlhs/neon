@@ -57,8 +57,7 @@ class MLP(Model):
         self.backend = backend
         kwargs = {"backend": self.backend, "batch_size": self.batch_size,
                   "accumulate": self.accumulate}
-        for ll, pl in zip(self.layers, [initlayer] + self.layers[:-1]):
-            ll.initialize(kwargs)
+        [ll.initialize(kwargs) for ll, unused_pl in zip(self.layers, [initlayer] + self.layers[:-1])]
 
         self.nin_max = max(map(lambda x: x.nin, self.layers[1:-1]))
         self.global_deltas = None
@@ -68,9 +67,8 @@ class MLP(Model):
                 dtype=self.layers[1].deltas_dtype)
             self.global_deltas.name = "delta_pool"
 
-        for idx, ll in enumerate(self.layers[1:-1]):
-            ll.set_deltas_buf(self.global_deltas,
-                              offset=((idx % 2) * self.nin_max))
+        [ll.set_deltas_buf(self.global_deltas,
+            offset=((idx % 2) * self.nin_max)) for idx,ll in enumerate(self.layers[1:-1]]
 
         self.initialized = True
 
@@ -80,15 +78,12 @@ class MLP(Model):
                                       dtype=self.layers[1].deltas_dtype)
 
     def fprop(self):
-        for ll, pl in zip(self.layers, [None] + self.layers[:-1]):
-            y = None if pl is None else pl.output
-            ll.fprop(y)
+        [ll.fprop(pl.output) if pl is not None else ll.fprop(None) 
+            for ll, pl in zip(self.layers, [None] + self.layers[-1])]
 
     def bprop(self):
-        for ll, nl in zip(reversed(self.layers),
-                          reversed(self.layers[1:] + [None])):
-            error = None if nl is None else nl.deltas
-            ll.bprop(error)
+        [ll.bprop(nl.deltas) if nl is not None else ll.bprop(None) 
+            for ll,nl in zip(reversed(self.layers), reversed(self.layers[1:] + [None]))]
 
     def print_layers(self, debug=False):
         printfunc = logger.debug if debug else logger.info
